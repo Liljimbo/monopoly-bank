@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { BillList } from "./BillList";
+import { QRCodeSVG } from "qrcode.react";
 import "./App.css";
 import "./AppResponsive.css";
+import "./AppEnhanced.css"; // 增强样式
 
 function saveLogin(data: any) {
   localStorage.setItem('bank_login', JSON.stringify(data));
@@ -26,11 +28,11 @@ function App() {
 
   return (
     <div className="app">
-      <h1>大富翁银行系统</h1>
+      <h1 className="main-title">大富翁银行系统</h1>
       {!mode && (
         <div className="mode-select center">
-          <button onClick={() => setMode("host")}>作为管理员（主机）创建房间</button>
-          <button onClick={() => setMode("player")}>作为玩家扫码加入房间</button>
+          <button className="my-btn main-btn" onClick={() => setMode("host")}>作为管理员（主机）创建房间</button>
+          <button className="my-btn main-btn" onClick={() => setMode("player")}>作为玩家扫码加入房间</button>
         </div>
       )}
       {mode === "host" && <HostRoom onLogout={handleLogout} />}
@@ -50,7 +52,6 @@ function HostRoom({ onLogout, roomName: propRoomName, roomPwd: propRoomPwd }: {
 }) {
   const [roomName, setRoomName] = useState(() => propRoomName ?? loadLogin().roomName ?? "");
   const [roomPwd, setRoomPwd] = useState(() => propRoomPwd ?? loadLogin().roomPwd ?? "");
-  // 修正点：只要有roomName和roomPwd，created为true
   const [created, setCreated] = useState(() =>
     !!(propRoomName && propRoomPwd) ||
     !!loadLogin().roomName
@@ -139,53 +140,59 @@ function HostRoom({ onLogout, roomName: propRoomName, roomPwd: propRoomPwd }: {
 
   return (
     <div>
-      <h2>管理员房间</h2>
       {!created ? (
-        <>
-          <label>
-            房间名：
-            <input
-              type="text"
-              value={roomName}
-              onChange={e => setRoomName(e.target.value)}
-              placeholder="请输入房间名"
-            />
-          </label>
-          <label>
-            房间密码：
-            <input
-              type="password"
-              value={roomPwd}
-              onChange={e => setRoomPwd(e.target.value)}
-              placeholder="请输入房间密码"
-            />
-          </label>
+        <div className="room-card">
+          <div className="room-title">创建房间</div>
+          <div className="room-info">
+            <label>
+              房间名：
+              <input
+                className="my-input"
+                type="text"
+                value={roomName}
+                onChange={e => setRoomName(e.target.value)}
+                placeholder="请输入房间名"
+              />
+            </label>
+          </div>
+          <div className="room-info">
+            <label>
+              房间密码：
+              <input
+                className="my-input"
+                type="password"
+                value={roomPwd}
+                onChange={e => setRoomPwd(e.target.value)}
+                placeholder="请输入房间密码"
+              />
+            </label>
+          </div>
           <button
+            className="my-btn main-btn"
             style={{ marginTop: 20 }}
             onClick={handleCreateRoom}
           >
             创建房间
           </button>
-        </>
+        </div>
       ) : (
         <>
-          <div>
-            <b>房间名：</b>{roomName}
+          <div className="room-card">
+            <div className="room-title">房间：{roomName}</div>
+            <div className="room-info">密码：{roomPwd}</div>
+            <div className="room-info">本机IP：<span style={{ color: "#2196f3" }}>{getLocalIP()}</span></div>
+            <div className="qr-section">
+              <div className="qr-label">扫码快速加入房间</div>
+              <QRCodeSVG
+                value={`http://${window.location.hostname}:4173/?room=${encodeURIComponent(roomName)}&pwd=${encodeURIComponent(roomPwd)}`}
+                size={180}
+                level="Q"
+              />
+              <div className="qr-tip">手机/平板扫码自动填写房间名和密码</div>
+            </div>
           </div>
-          <div>
-            <b>房间密码：</b>{roomPwd}
-          </div>
-          <div style={{ marginTop: 10 }}>
-            <b>本机IP：</b>
-            <span style={{ fontSize: "1.2em", color: "#2196f3" }}>
-              {getLocalIP()}
-            </span>
-          </div>
-          <div style={{ marginTop: 10, color: "#666", fontSize: 14 }}>
-            让玩家输入此IP地址、房间名、密码和用户名即可加入。
-          </div>
-          <div className="mt-18">
-            <b>当前玩家列表：</b>
+          <div className="main-section">
+            <div className="players-title">当前玩家列表</div>
             <div className="bill-table-container">
               <table>
                 <thead>
@@ -205,35 +212,38 @@ function HostRoom({ onLogout, roomName: propRoomName, roomPwd: propRoomPwd }: {
                         {p.username !== "管理员" && (
                           <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                             <input
+                              className="my-input"
                               type="number"
                               value={editStates[p.username]?.add || ""}
                               onChange={e => updateEdit(p.username, "add", e.target.value)}
                               placeholder="加"
                               style={{ width: 50 }}
                             />
-                            <button onClick={() => handleAdminAction(p.username, "add")}>加钱</button>
+                            <button className="my-btn mini-btn" onClick={() => handleAdminAction(p.username, "add")}>加钱</button>
                             <input
+                              className="my-input"
                               type="number"
                               value={editStates[p.username]?.subtract || ""}
                               onChange={e => updateEdit(p.username, "subtract", e.target.value)}
                               placeholder="扣"
                               style={{ width: 50 }}
                             />
-                            <button onClick={() => handleAdminAction(p.username, "subtract")}>扣钱</button>
+                            <button className="my-btn mini-btn" onClick={() => handleAdminAction(p.username, "subtract")}>扣钱</button>
                             <input
+                              className="my-input"
                               type="number"
                               value={editStates[p.username]?.set || ""}
                               onChange={e => updateEdit(p.username, "set", e.target.value)}
                               placeholder="设置"
                               style={{ width: 60 }}
                             />
-                            <button onClick={() => handleAdminAction(p.username, "set")}>设定</button>
+                            <button className="my-btn mini-btn" onClick={() => handleAdminAction(p.username, "set")}>设定</button>
                           </div>
                         )}
                       </td>
                       <td data-label="踢出">
                         {p.username !== "管理员" && (
-                          <button style={{ color: "red" }} onClick={() => handleKick(p.username)}>
+                          <button className="my-btn danger-btn" onClick={() => handleKick(p.username)}>
                             踢出
                           </button>
                         )}
@@ -243,10 +253,10 @@ function HostRoom({ onLogout, roomName: propRoomName, roomPwd: propRoomPwd }: {
                 </tbody>
               </table>
             </div>
-            <button style={{ marginTop: 12 }} onClick={handleReset}>重置所有玩家余额</button>
+            <button className="my-btn warn-btn" style={{ marginTop: 12 }} onClick={handleReset}>重置所有玩家余额</button>
+            <BillList bills={bills} username="管理员" canEdit={false} />
+            <button className="my-btn danger-btn" style={{ marginTop: 18 }} onClick={onLogout}>退出管理</button>
           </div>
-          <BillList bills={bills} username="管理员" canEdit={false} />
-          <button style={{ marginTop: 18, color: "red" }} onClick={onLogout}>退出管理</button>
         </>
       )}
     </div>
@@ -271,6 +281,15 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
     const u = loadLogin().username || "";
     return u.trim().toLowerCase() === "admin" ? "管理员" : u;
   });
+
+  // 自动读取url参数填充表单
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const roomParam = params.get("room");
+    const pwdParam = params.get("pwd");
+    if (roomParam) setRoom(roomParam);
+    if (pwdParam) setPwd(pwdParam);
+  }, []);
 
   useEffect(() => {
     if (!joined) return;
@@ -322,22 +341,14 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
 
     return (
       <div>
-        <h2>已加入房间</h2>
-        <div>
-          <b>主机IP：</b>{ip}
+        <div className="room-card">
+          <div className="room-title">欢迎，{loginUser}</div>
+          <div className="room-info">主机IP：{ip}</div>
+          <div className="room-info">房间名：{room}</div>
+          <div className="room-info">我的当前余额：<span style={{ color: "#009688", fontWeight: "bold" }}>{self?.balance ?? "--"}</span></div>
         </div>
-        <div>
-          <b>用户名：</b>{loginUser}
-        </div>
-        <div>
-          <b>房间名：</b>{room}
-        </div>
-        <div style={{ marginTop: 10, color: "#666", fontSize: 14 }}>
-          <b>我的当前余额：</b>
-          <span style={{ color: "#009688", fontWeight: "bold" }}>{self?.balance ?? "--"}</span>
-        </div>
-        <div className="mt-18">
-          <b>所有玩家：</b>
+        <div className="main-section">
+          <div className="players-title">所有玩家</div>
           <div className="bill-table-container">
             <table>
               <thead>
@@ -356,68 +367,70 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
               </tbody>
             </table>
           </div>
-        </div>
-        <div className="mt-18" style={{ border: "1px solid #eee", padding: 12, borderRadius: 4 }}>
-          <b>向其他玩家转账：</b>
-          <div style={{ marginTop: 8 }}>
-            <select value={to} onChange={e => setTo(e.target.value)}>
-              <option value="">请选择收款人</option>
-              {players
-                .filter(p =>
-                  canEdit
-                    ? (p.username !== "管理员")
-                    : (p.username !== loginUser && p.username !== "管理员")
-                )
-                .map((p, i) => (
-                  <option key={i} value={p.username}>
-                    {p.username}
-                  </option>
-                ))}
-            </select>
+          <div className="transfer-section">
+            <b>向其他玩家转账：</b>
+            <div style={{ marginTop: 8 }}>
+              <select className="my-input" value={to} onChange={e => setTo(e.target.value)}>
+                <option value="">请选择收款人</option>
+                {players
+                  .filter(p =>
+                    canEdit
+                      ? (p.username !== "管理员")
+                      : (p.username !== loginUser && p.username !== "管理员")
+                  )
+                  .map((p, i) => (
+                    <option key={i} value={p.username}>
+                      {p.username}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <input
+                className="my-input"
+                type="number"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+                placeholder="金额"
+              />
+            </div>
+            <button className="my-btn main-btn" style={{ marginTop: 8 }} onClick={() => {
+              setErr("");
+              const amt = Number(amount);
+              if (!to || !amount || isNaN(amt) || amt <= 0) {
+                setErr("请输入有效的收款人和金额！");
+                return;
+              }
+              wsRef.current?.send(
+                JSON.stringify({
+                  type: "transfer",
+                  from: loginUser,
+                  to,
+                  amount: amt,
+                  room,
+                })
+              );
+              setAmount("");
+            }}>
+              转账
+            </button>
+            {err && <div style={{ color: "red", marginTop: 10 }}>{err}</div>}
           </div>
-          <div style={{ marginTop: 8 }}>
-            <input
-              type="number"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              placeholder="金额"
-            />
-          </div>
-          <button style={{ marginTop: 8 }} onClick={() => {
-            setErr("");
-            const amt = Number(amount);
-            if (!to || !amount || isNaN(amt) || amt <= 0) {
-              setErr("请输入有效的收款人和金额！");
-              return;
-            }
-            wsRef.current?.send(
-              JSON.stringify({
-                type: "transfer",
-                from: loginUser,
-                to,
-                amount: amt,
-                room,
-              })
-            );
-            setAmount("");
-          }}>
-            转账
-          </button>
-          {err && <div style={{ color: "red", marginTop: 10 }}>{err}</div>}
+          <BillList bills={bills} username={loginUser} canEdit={canEdit} />
+          <button className="my-btn danger-btn" style={{ marginTop: 18 }} onClick={() => { clearLogin(); onLogout(); }}>退出房间</button>
         </div>
-        <BillList bills={bills} username={loginUser} canEdit={canEdit} />
-        <button style={{ marginTop: 18, color: "red" }} onClick={() => { clearLogin(); onLogout(); }}>退出房间</button>
       </div>
     );
   }
 
   return (
-    <div>
-      <h2>玩家加入</h2>
-      <div>
+    <div className="room-card">
+      <div className="room-title">玩家加入</div>
+      <div className="room-info">
         <label>
           主机IP：
           <input
+            className="my-input"
             type="text"
             value={ip}
             onChange={e => setIp(e.target.value)}
@@ -425,10 +438,11 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
           />
         </label>
       </div>
-      <div>
+      <div className="room-info">
         <label>
           房间名：
           <input
+            className="my-input"
             type="text"
             value={room}
             onChange={e => setRoom(e.target.value)}
@@ -436,10 +450,11 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
           />
         </label>
       </div>
-      <div>
+      <div className="room-info">
         <label>
           房间密码：
           <input
+            className="my-input"
             type="password"
             value={pwd}
             onChange={e => setPwd(e.target.value)}
@@ -447,10 +462,11 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
           />
         </label>
       </div>
-      <div>
+      <div className="room-info">
         <label>
           用户名：
           <input
+            className="my-input"
             type="text"
             value={username}
             onChange={e => setUsername(e.target.value)}
@@ -458,7 +474,7 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
           />
         </label>
       </div>
-      <button style={{ marginTop: 20 }} onClick={handleJoin}>加入房间</button>
+      <button className="my-btn main-btn" style={{ marginTop: 20 }} onClick={handleJoin}>加入房间</button>
       {err && <div style={{ color: "red", marginTop: 10 }}>{err}</div>}
     </div>
   );
