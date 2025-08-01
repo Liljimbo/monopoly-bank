@@ -12,11 +12,11 @@ type Bill = {
 
 export function BillList({ bills }: { bills: Bill[] }) {
   return (
-    <div style={{ marginTop: 18 }}>
+    <div className="bill-table-container">
       <b>账单流水：</b>
-      <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
+      <table className="bill-table">
         <thead>
-          <tr style={{ background: "#eee" }}>
+          <tr>
             <th>时间</th>
             <th>类型</th>
             <th>详情</th>

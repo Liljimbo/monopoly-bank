@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+import { BillList } from "./BillList";
 import "./App.css";
+import "./AppResponsive.css";
 
 function saveLogin(data: any) {
   localStorage.setItem('bank_login', JSON.stringify(data));
@@ -28,7 +30,7 @@ function App() {
     <div className="app">
       <h1>大富翁银行系统</h1>
       {!mode && (
-        <div className="mode-select">
+        <div className="mode-select center">
           <button onClick={() => setMode("host")}>作为管理员（主机）创建房间</button>
           <button onClick={() => setMode("player")}>作为玩家扫码加入房间</button>
         </div>
@@ -141,7 +143,6 @@ function HostRoom({ onLogout }: { onLogout: () => void }) {
               value={roomName}
               onChange={e => setRoomName(e.target.value)}
               placeholder="请输入房间名"
-              style={{ width: "80%", marginTop: 8 }}
             />
           </label>
           <label>
@@ -151,7 +152,6 @@ function HostRoom({ onLogout }: { onLogout: () => void }) {
               value={roomPwd}
               onChange={e => setRoomPwd(e.target.value)}
               placeholder="请输入房间密码"
-              style={{ width: "80%", marginTop: 8 }}
             />
           </label>
           <button
@@ -178,63 +178,65 @@ function HostRoom({ onLogout }: { onLogout: () => void }) {
           <div style={{ marginTop: 10, color: "#666", fontSize: 14 }}>
             让玩家输入此IP地址、房间名、密码和用户名即可加入。
           </div>
-          <div style={{ marginTop: 20 }}>
+          <div className="mt-18">
             <b>当前玩家列表：</b>
-            <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#eee" }}>
-                  <th>用户名</th>
-                  <th>余额</th>
-                  <th>管理操作</th>
-                  <th>踢出</th>
-                </tr>
-              </thead>
-              <tbody>
-                {players.map((p, i) => (
-                  <tr key={i}>
-                    <td>{p.username}</td>
-                    <td>{p.balance}</td>
-                    <td>
-                      {p.username !== "管理员" && (
-                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                          <input
-                            type="number"
-                            value={editStates[p.username]?.add || ""}
-                            onChange={e => updateEdit(p.username, "add", e.target.value)}
-                            placeholder="加"
-                            style={{ width: 50 }}
-                          />
-                          <button onClick={() => handleAdminAction(p.username, "add")}>加钱</button>
-                          <input
-                            type="number"
-                            value={editStates[p.username]?.subtract || ""}
-                            onChange={e => updateEdit(p.username, "subtract", e.target.value)}
-                            placeholder="扣"
-                            style={{ width: 50 }}
-                          />
-                          <button onClick={() => handleAdminAction(p.username, "subtract")}>扣钱</button>
-                          <input
-                            type="number"
-                            value={editStates[p.username]?.set || ""}
-                            onChange={e => updateEdit(p.username, "set", e.target.value)}
-                            placeholder="设置"
-                            style={{ width: 60 }}
-                          />
-                          <button onClick={() => handleAdminAction(p.username, "set")}>设定</button>
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      {p.username !== "管理员" && (
-                        <button style={{ color: "red" }} onClick={() => handleKick(p.username)}>
-                          踢出
-                        </button>
-                      )}
-                    </td>
+            <div className="bill-table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>用户名</th>
+                    <th>余额</th>
+                    <th>管理操作</th>
+                    <th>踢出</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {players.map((p, i) => (
+                    <tr key={i}>
+                      <td data-label="用户名">{p.username}</td>
+                      <td data-label="余额">{p.balance}</td>
+                      <td data-label="管理操作">
+                        {p.username !== "管理员" && (
+                          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                            <input
+                              type="number"
+                              value={editStates[p.username]?.add || ""}
+                              onChange={e => updateEdit(p.username, "add", e.target.value)}
+                              placeholder="加"
+                              style={{ width: 50 }}
+                            />
+                            <button onClick={() => handleAdminAction(p.username, "add")}>加钱</button>
+                            <input
+                              type="number"
+                              value={editStates[p.username]?.subtract || ""}
+                              onChange={e => updateEdit(p.username, "subtract", e.target.value)}
+                              placeholder="扣"
+                              style={{ width: 50 }}
+                            />
+                            <button onClick={() => handleAdminAction(p.username, "subtract")}>扣钱</button>
+                            <input
+                              type="number"
+                              value={editStates[p.username]?.set || ""}
+                              onChange={e => updateEdit(p.username, "set", e.target.value)}
+                              placeholder="设置"
+                              style={{ width: 60 }}
+                            />
+                            <button onClick={() => handleAdminAction(p.username, "set")}>设定</button>
+                          </div>
+                        )}
+                      </td>
+                      <td data-label="踢出">
+                        {p.username !== "管理员" && (
+                          <button style={{ color: "red" }} onClick={() => handleKick(p.username)}>
+                            踢出
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <button style={{ marginTop: 12 }} onClick={handleReset}>重置所有玩家余额</button>
           </div>
           <BillList bills={bills} />
@@ -334,29 +336,31 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
           <b>我的当前余额：</b>
           <span style={{ color: "#009688", fontWeight: "bold" }}>{self?.balance ?? "--"}</span>
         </div>
-        <div style={{ marginTop: 18 }}>
+        <div className="mt-18">
           <b>所有玩家：</b>
-          <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ background: "#eee" }}>
-                <th>用户名</th>
-                <th>余额</th>
-              </tr>
-            </thead>
-            <tbody>
-              {players.map((p, i) => (
-                <tr key={i}>
-                  <td>{p.username}</td>
-                  <td>{p.balance}</td>
+          <div className="bill-table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>用户名</th>
+                  <th>余额</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {players.map((p, i) => (
+                  <tr key={i}>
+                    <td data-label="用户名">{p.username}</td>
+                    <td data-label="余额">{p.balance}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div style={{ marginTop: 18, border: "1px solid #eee", padding: 12, borderRadius: 4 }}>
+        <div className="mt-18" style={{ border: "1px solid #eee", padding: 12, borderRadius: 4 }}>
           <b>向其他玩家转账：</b>
           <div style={{ marginTop: 8 }}>
-            <select value={to} onChange={e => setTo(e.target.value)} style={{ width: "60%" }}>
+            <select value={to} onChange={e => setTo(e.target.value)}>
               <option value="">请选择收款人</option>
               {players
                 .filter(p => p.username !== username && p.username !== "管理员")
@@ -373,7 +377,6 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
               value={amount}
               onChange={e => setAmount(e.target.value)}
               placeholder="金额"
-              style={{ width: "60%" }}
             />
           </div>
           <button style={{ marginTop: 8 }} onClick={handleTransfer}>
@@ -398,11 +401,10 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
             value={ip}
             onChange={e => setIp(e.target.value)}
             placeholder="如 192.168.1.100"
-            style={{ width: "80%", marginTop: 8 }}
           />
         </label>
       </div>
-      <div style={{ marginTop: 12 }}>
+      <div>
         <label>
           房间名：
           <input
@@ -410,11 +412,10 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
             value={room}
             onChange={e => setRoom(e.target.value)}
             placeholder="请输入房间名"
-            style={{ width: "80%", marginTop: 8 }}
           />
         </label>
       </div>
-      <div style={{ marginTop: 12 }}>
+      <div>
         <label>
           房间密码：
           <input
@@ -422,11 +423,10 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
             value={pwd}
             onChange={e => setPwd(e.target.value)}
             placeholder="请输入房间密码"
-            style={{ width: "80%", marginTop: 8 }}
           />
         </label>
       </div>
-      <div style={{ marginTop: 12 }}>
+      <div>
         <label>
           用户名：
           <input
@@ -434,46 +434,11 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
             value={username}
             onChange={e => setUsername(e.target.value)}
             placeholder="请输入用户名"
-            style={{ width: "80%", marginTop: 8 }}
           />
         </label>
       </div>
       <button style={{ marginTop: 20 }} onClick={handleJoin}>加入房间</button>
       {err && <div style={{ color: "red", marginTop: 10 }}>{err}</div>}
-    </div>
-  );
-}
-
-function BillList({ bills }: { bills: any[] }) {
-  return (
-    <div style={{ marginTop: 18 }}>
-      <b>账单流水：</b>
-      <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ background: "#eee" }}>
-            <th>时间</th>
-            <th>类型</th>
-            <th>详情</th>
-          </tr>
-        </thead>
-        <tbody>
-          {bills.map((b, i) => (
-            <tr key={i}>
-              <td>{new Date(b.time).toLocaleString()}</td>
-              <td>{b.type}</td>
-              <td>
-                {b.type === "transfer" && `${b.from} 向 ${b.to} 转账 ${b.amount}`}
-                {b.type === "admin_add" && `管理员给 ${b.target} 加 ${b.amount}（${b.before}→${b.after}）`}
-                {b.type === "admin_subtract" && `管理员扣 ${b.target} ${b.amount}（${b.before}→${b.after}）`}
-                {b.type === "admin_set" && `管理员设定 ${b.target} 余额为 ${b.amount}（${b.before}→${b.after}）`}
-                {b.type === "reset" && "房主重置所有余额"}
-                {b.type === "kick" && `管理员踢出 ${b.kickWho}`}
-                {!["transfer", "admin_add", "admin_subtract", "admin_set", "reset", "kick"].includes(b.type) && JSON.stringify(b)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }
