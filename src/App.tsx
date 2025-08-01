@@ -43,10 +43,18 @@ function getLocalIP() {
   return window.location.hostname;
 }
 
-function HostRoom({ onLogout }: { onLogout: () => void }) {
-  const [roomName, setRoomName] = useState(() => loadLogin().roomName || "");
-  const [roomPwd, setRoomPwd] = useState(() => loadLogin().roomPwd || "");
-  const [created, setCreated] = useState(() => !!loadLogin().roomName);
+function HostRoom({ onLogout, roomName: propRoomName, roomPwd: propRoomPwd }: {
+  onLogout: () => void;
+  roomName?: string;
+  roomPwd?: string;
+}) {
+  const [roomName, setRoomName] = useState(() => propRoomName ?? loadLogin().roomName ?? "");
+  const [roomPwd, setRoomPwd] = useState(() => propRoomPwd ?? loadLogin().roomPwd ?? "");
+  // 修正点：只要有roomName和roomPwd，created为true
+  const [created, setCreated] = useState(() =>
+    !!(propRoomName && propRoomPwd) ||
+    !!loadLogin().roomName
+  );
   const [players, setPlayers] = useState<{ username: string; balance: number; canEdit?: boolean }[]>([]);
   const [bills, setBills] = useState<any[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
@@ -258,6 +266,12 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
   const [amount, setAmount] = useState("");
   const wsRef = useRef<WebSocket | null>(null);
 
+  // 记录登录时实际提交到服务端的用户名（admin→管理员）
+  const [loginUser, setLoginUser] = useState(() => {
+    const u = loadLogin().username || "";
+    return u.trim().toLowerCase() === "admin" ? "管理员" : u;
+  });
+
   useEffect(() => {
     if (!joined) return;
     let ws = wsRef.current;
@@ -266,7 +280,7 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
       wsRef.current = ws;
     }
     ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "join", room, username, password: pwd }));
+      ws.send(JSON.stringify({ type: "join", room, username: loginUser, password: pwd }));
       ws.send(JSON.stringify({ type: "get_bills", room }));
     };
     ws.onmessage = (msg) => {
@@ -281,7 +295,7 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
     ws.onclose = () => { };
     return () => ws.close();
     // eslint-disable-next-line
-  }, [joined, ip, room, pwd, username]);
+  }, [joined, ip, room, pwd, loginUser]);
 
   function handleJoin() {
     setErr("");
@@ -289,32 +303,22 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
     if (!room.trim()) { setErr("房间名不能为空"); return; }
     if (!pwd.trim()) { setErr("房间密码不能为空"); return; }
     if (!username.trim()) { setErr("用户名不能为空"); return; }
-    saveLogin({ mode: "player", ip, room, pwd, username });
+    // admin 自动映射为“管理员”
+    const loginUserFixed = username.trim().toLowerCase() === "admin" ? "管理员" : username.trim();
+    saveLogin({ mode: "player", ip, room, pwd, username: loginUserFixed });
+    setLoginUser(loginUserFixed);
     setJoined(true);
   }
 
-  function handleTransfer() {
-    setErr("");
-    const amt = Number(amount);
-    if (!to || !amount || isNaN(amt) || amt <= 0) {
-      setErr("请输入有效的收款人和金额！");
-      return;
-    }
-    wsRef.current?.send(
-      JSON.stringify({
-        type: "transfer",
-        from: username,
-        to,
-        amount: amt,
-        room,
-      })
-    );
-    setAmount("");
-  }
-
   if (joined) {
-    const self = players.find(p => p.username === username);
+    const self = players.find(p => p.username === loginUser);
     const canEdit = !!self?.canEdit;
+    const isAdmin = self?.username === "管理员";
+
+    if (isAdmin) {
+      // 关键：传递room/pwd props，HostRoom会直接进入管理界面
+      return <HostRoom onLogout={onLogout} roomName={room} roomPwd={pwd} />;
+    }
 
     return (
       <div>
@@ -323,7 +327,7 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
           <b>主机IP：</b>{ip}
         </div>
         <div>
-          <b>用户名：</b>{username}
+          <b>用户名：</b>{loginUser}
         </div>
         <div>
           <b>房间名：</b>{room}
@@ -362,7 +366,7 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
                 .filter(p =>
                   canEdit
                     ? (p.username !== "管理员")
-                    : (p.username !== username && p.username !== "管理员")
+                    : (p.username !== loginUser && p.username !== "管理员")
                 )
                 .map((p, i) => (
                   <option key={i} value={p.username}>
@@ -379,12 +383,29 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
               placeholder="金额"
             />
           </div>
-          <button style={{ marginTop: 8 }} onClick={handleTransfer}>
+          <button style={{ marginTop: 8 }} onClick={() => {
+            setErr("");
+            const amt = Number(amount);
+            if (!to || !amount || isNaN(amt) || amt <= 0) {
+              setErr("请输入有效的收款人和金额！");
+              return;
+            }
+            wsRef.current?.send(
+              JSON.stringify({
+                type: "transfer",
+                from: loginUser,
+                to,
+                amount: amt,
+                room,
+              })
+            );
+            setAmount("");
+          }}>
             转账
           </button>
           {err && <div style={{ color: "red", marginTop: 10 }}>{err}</div>}
         </div>
-        <BillList bills={bills} username={username} canEdit={canEdit} />
+        <BillList bills={bills} username={loginUser} canEdit={canEdit} />
         <button style={{ marginTop: 18, color: "red" }} onClick={() => { clearLogin(); onLogout(); }}>退出房间</button>
       </div>
     );
@@ -433,7 +454,7 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
             type="text"
             value={username}
             onChange={e => setUsername(e.target.value)}
-            placeholder="请输入用户名"
+            placeholder="请输入用户名（管理员请填 admin）"
           />
         </label>
       </div>
