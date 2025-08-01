@@ -14,13 +14,11 @@ function clearLogin() { localStorage.removeItem('bank_login'); }
 function App() {
   const [mode, setMode] = useState<"host" | "player" | null>(null);
 
-  // 恢复状态
   useEffect(() => {
     const info = loadLogin();
     if (info && info.mode) setMode(info.mode);
   }, []);
 
-  // 主动退出按钮
   function handleLogout() {
     clearLogin();
     window.location.reload();
@@ -49,7 +47,7 @@ function HostRoom({ onLogout }: { onLogout: () => void }) {
   const [roomName, setRoomName] = useState(() => loadLogin().roomName || "");
   const [roomPwd, setRoomPwd] = useState(() => loadLogin().roomPwd || "");
   const [created, setCreated] = useState(() => !!loadLogin().roomName);
-  const [players, setPlayers] = useState<{ username: string; balance: number }[]>([]);
+  const [players, setPlayers] = useState<{ username: string; balance: number; canEdit?: boolean }[]>([]);
   const [bills, setBills] = useState<any[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
   const [editStates, setEditStates] = useState<Record<string, { add: string; subtract: string; set: string }>>({});
@@ -239,7 +237,7 @@ function HostRoom({ onLogout }: { onLogout: () => void }) {
             </div>
             <button style={{ marginTop: 12 }} onClick={handleReset}>重置所有玩家余额</button>
           </div>
-          <BillList bills={bills} />
+          <BillList bills={bills} username="管理员" canEdit={false} />
           <button style={{ marginTop: 18, color: "red" }} onClick={onLogout}>退出管理</button>
         </>
       )}
@@ -254,7 +252,7 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
   const [username, setUsername] = useState(() => loadLogin().username || "");
   const [joined, setJoined] = useState(() => !!loadLogin().username && !!loadLogin().room && !!loadLogin().pwd);
   const [err, setErr] = useState("");
-  const [players, setPlayers] = useState<{ username: string; balance: number }[]>([]);
+  const [players, setPlayers] = useState<{ username: string; balance: number; canEdit?: boolean }[]>([]);
   const [bills, setBills] = useState<any[]>([]);
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
@@ -269,6 +267,7 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
     }
     ws.onopen = () => {
       ws.send(JSON.stringify({ type: "join", room, username, password: pwd }));
+      ws.send(JSON.stringify({ type: "get_bills", room }));
     };
     ws.onmessage = (msg) => {
       try {
@@ -280,11 +279,6 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
     };
     ws.onerror = () => setErr("无法连接到主机，请检查IP和网络");
     ws.onclose = () => { };
-    // 主动获取账单
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "join", room, username, password: pwd }));
-      ws.send(JSON.stringify({ type: "get_bills", room }));
-    };
     return () => ws.close();
     // eslint-disable-next-line
   }, [joined, ip, room, pwd, username]);
@@ -320,6 +314,8 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
 
   if (joined) {
     const self = players.find(p => p.username === username);
+    const canEdit = !!self?.canEdit;
+
     return (
       <div>
         <h2>已加入房间</h2>
@@ -363,7 +359,11 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
             <select value={to} onChange={e => setTo(e.target.value)}>
               <option value="">请选择收款人</option>
               {players
-                .filter(p => p.username !== username && p.username !== "管理员")
+                .filter(p =>
+                  canEdit
+                    ? (p.username !== "管理员")
+                    : (p.username !== username && p.username !== "管理员")
+                )
                 .map((p, i) => (
                   <option key={i} value={p.username}>
                     {p.username}
@@ -384,7 +384,7 @@ function JoinRoom({ onLogout }: { onLogout: () => void }) {
           </button>
           {err && <div style={{ color: "red", marginTop: 10 }}>{err}</div>}
         </div>
-        <BillList bills={bills} />
+        <BillList bills={bills} username={username} canEdit={canEdit} />
         <button style={{ marginTop: 18, color: "red" }} onClick={() => { clearLogin(); onLogout(); }}>退出房间</button>
       </div>
     );

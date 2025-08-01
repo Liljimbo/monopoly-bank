@@ -1,134 +1,164 @@
 :root {
-  --main-color: #009688;
-  --main-bg: #f7f8fa;
-  --accent: #2196f3;
-  --border-radius: 8px;
-  --max-width: 900px;
+  --md3-primary: #6750A4;
+  --md3-on-primary: #fff;
+  --md3-primary-container: #EADDFF;
+  --md3-on-primary-container: #21005E;
+  --md3-secondary: #625B71;
+  --md3-on-secondary: #fff;
+  --md3-background: #f5f5f5;
+  --md3-surface: #ffffff;
+  --md3-surface-variant: #E7E0EC;
+  --md3-outline: #79747E;
+  --md3-accent: #7D5260;
+  --md3-error: #B3261E;
+  --border-radius: 14px;
+  --max-width: 1080px;
+  --shadow: 0 4px 18px 0 #0002;
+  --font-main: 'Google Sans', 'Segoe UI', Arial, 'PingFang SC', 'Helvetica Neue', sans-serif;
 }
 
+/* 基础 */
 body, .app {
-  background: var(--main-bg);
+  background: var(--md3-background);
+  font-family: var(--font-main);
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  font-family: 'Segoe UI', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .app {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 24px 12px 32px 12px;
-  background: #fff;
+  padding: 32px 16px 40px 16px;
+  background: var(--md3-surface);
   border-radius: var(--border-radius);
-  box-shadow: 0 6px 24px 0 #0001;
+  box-shadow: var(--shadow);
+  min-height: 100vh;
 }
 
 h1, h2 {
-  color: var(--main-color);
+  color: var(--md3-primary);
   text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+h1 { font-size: 2rem; margin-bottom: 12px; }
+h2 { font-size: 1.3rem; margin: 18px 0 12px 0; }
+
+label {
+  display: block;
+  margin: 12px 0 4px 0;
+  font-weight: 500;
+  font-size: 1.04rem;
 }
 
+/* 按钮风格 */
 button {
-  background: var(--main-color);
-  color: #fff;
+  background: var(--md3-primary);
+  color: var(--md3-on-primary);
   border: none;
-  border-radius: var(--border-radius);
-  padding: 10px 22px;
-  font-size: 1rem;
-  font-weight: 500;
+  border-radius: 16px;
+  padding: 0 28px;
+  height: 48px;
+  min-width: 120px;
+  font-size: 1.07rem;
+  font-weight: bold;
+  letter-spacing: 0.03em;
   cursor: pointer;
-  margin: 4px 0;
-  transition: background 0.18s;
+  margin: 6px 0;
+  box-shadow: 0 2px 6px 0 #0001;
+  transition: background 0.16s, box-shadow 0.18s, transform 0.12s;
+  outline: none;
+  user-select: none;
 }
 button:hover, button:focus {
-  background: var(--accent);
-  outline: none;
+  background: #5A459C;
+  box-shadow: 0 4px 18px 0 #0002;
+  transform: translateY(-2px) scale(1.02);
 }
 button[disabled] {
-  background: #ccc; color: #fff; cursor: not-allowed;
+  background: #e0e0e0; color: #aaa; cursor: not-allowed; box-shadow: none;
 }
 .mode-select button {
-  width: 90%;
-  max-width: 300px;
+  width: 94%;
+  max-width: 320px;
   margin: 18px auto;
   display: block;
+  font-size: 1.13rem;
 }
 
+/* 输入框与选择框 */
 input, select {
-  border: 1.5px solid #eee;
-  border-radius: var(--border-radius);
-  padding: 10px 12px;
-  font-size: 1rem;
-  margin: 6px 0;
+  border: 1.8px solid var(--md3-outline);
+  border-radius: 12px;
+  padding: 13px 14px;
+  font-size: 1.08rem;
+  margin: 8px 0;
   outline: none;
   width: 100%;
   box-sizing: border-box;
-  transition: border 0.2s;
+  background: var(--md3-surface-variant);
+  color: #222;
+  transition: border 0.2s, box-shadow 0.2s;
+  font-family: inherit;
 }
 input:focus, select:focus {
-  border-color: var(--main-color);
+  border-color: var(--md3-primary);
+  box-shadow: 0 0 0 2px #eaddff70;
 }
-label { display: block; margin: 8px 0 2px 0; font-weight: 500; }
+input[readonly], select[disabled] {
+  background: #f5f5f5;
+  color: #aaa;
+}
+::placeholder {
+  color: #bbb;
+  opacity: 1;
+}
 
-table {
-  width: 100%;
-  background: #fff;
-  border-collapse: collapse;
-  margin-top: 8px;
-  font-size: 1rem;
-}
-th, td {
-  border-bottom: 1px solid #eee;
-  padding: 8px 6px;
-  text-align: left;
-}
-th {
-  background: #f4f6f8;
-  color: #333;
-}
-tr:last-child td { border-bottom: none; }
-tr:hover { background: #f2f9f8; }
-
-.card-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 8px;
-}
-.card {
-  background: #fafbfb;
-  border: 1.5px solid #e6ecec;
-  border-radius: var(--border-radius);
-  box-shadow: 0 2px 10px 0 #0001;
-  padding: 14px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.card .card-title { font-weight: bold; color: var(--main-color); }
-.card .card-balance { font-size: 1.13em; color: var(--accent); }
-
+/* 表格/卡片 */
 .bill-table-container {
   overflow-x: auto;
   margin-top: 12px;
 }
-table.bill-table {
-  min-width: 600px;
-  font-size: 0.98em;
+table {
+  width: 100%;
+  background: var(--md3-surface-variant);
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px 0 #0001;
+  font-size: 1.01rem;
 }
+th, td {
+  border-bottom: 1.5px solid #eee;
+  padding: 14px 8px;
+  text-align: left;
+}
+th {
+  background: var(--md3-primary-container);
+  color: var(--md3-on-primary-container);
+  font-size: 1.09rem;
+  font-weight: 600;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover { background: #f3eafe; }
+td[data-label] { font-size: 1.01rem; }
 
 @media (max-width: 700px) {
   .app {
     max-width: 100vw;
-    padding: 6vw 2vw 16vw 2vw;
+    min-width: 0;
+    padding: 5vw 2vw 14vw 2vw;
     border-radius: 0;
     box-shadow: none;
   }
-  h1, h2 { font-size: 1.25em; }
+  h1, h2 { font-size: 1.15em; }
   button, input, select {
-    font-size: 1.1em;
-    padding: 13px 0;
-    margin: 8px 0;
+    font-size: 1.12em;
+    height: 46px;
+    padding: 10px 0;
+    margin: 10px 0;
+    border-radius: 12px;
   }
   table, thead, tbody, th, td, tr { display: block; }
   table {
@@ -136,31 +166,58 @@ table.bill-table {
     margin: 0;
     background: none;
     box-shadow: none;
+    border-radius: 0;
   }
   thead { display: none; }
   tr {
-    margin-bottom: 10px;
-    border-radius: var(--border-radius);
-    background: #f9fcfc;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    background: #faf6ff;
     box-shadow: 0 2px 8px #0001;
+    border: 1px solid #e0e0e0;
   }
   td {
     border: none;
-    padding: 10px 4px;
+    padding: 14px 4px 8px 4px;
     position: relative;
-    font-size: 1.04em;
+    font-size: 1.09em;
+    background: none;
   }
   td:before {
     content: attr(data-label);
     font-weight: 600;
-    color: #8ab;
+    color: #a88adf;
     display: block;
     margin-bottom: 2px;
     font-size: 0.96em;
+    letter-spacing: 0.04em;
   }
-  .card-list, .card { margin: 0; }
 }
 
 .mt-18 { margin-top: 18px; }
 .mb-10 { margin-bottom: 10px; }
 .center { text-align: center; }
+
+/* 卡片式玩家列表（移动端可用） */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+}
+.card {
+  background: var(--md3-primary-container);
+  border: 1.5px solid #e0d9ef;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px 0 #0001;
+  padding: 18px 14px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.card .card-title { font-weight: bold; color: var(--md3-primary); }
+.card .card-balance { font-size: 1.15em; color: var(--md3-accent); }
+
+/* 强调色/错误色 */
+.text-accent { color: var(--md3-accent); }
+.text-error { color: var(--md3-error); }
